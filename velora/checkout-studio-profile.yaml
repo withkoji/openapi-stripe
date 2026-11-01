@@ -1,0 +1,71 @@
+# VELORA Stripe Checkout Studio profile
+# This file is a VELORA-specific configuration layer for the upstream Stripe OpenAPI fork.
+# Do not merge these values into generated Stripe specification files under latest/, preview/, or openapi/.
+
+profile: velora_checkout_hosted_mobile_app_0001
+runtime_repository: withkoji/velora-booking-commerce
+checkout_endpoint: /api/create-checkout-session
+
+scenario:
+  type: existing_checkout_session
+  source: integrations/stripe-server/app.rb
+  sdk:
+    language: ruby
+    stripe_gem_constraint: "~> 19.6"
+    ui_mode: hosted
+    reason: "Stripe SDK below 21.0.0 uses hosted per the supplied Checkout Studio versioning rule."
+
+checkout_session:
+  mode:
+    intent: runtime_owned
+    value: subscription
+    note: "VELORA Wellness Membership is recurring. Preserve runtime product logic."
+
+  fixed_by_ui:
+    ui_mode: hosted
+    billing_address_collection: auto
+    phone_number_collection:
+      enabled: false
+    automatic_tax:
+      enabled: false
+    allow_promotion_codes: false
+    payment_method_collection: always
+    submit_type: book
+    consent_collection:
+      terms_of_service: required
+      promotions: auto
+    name_collection:
+      individual:
+        enabled: true
+    locale: en
+    saved_payment_method_options:
+      payment_method_save: enabled
+    integration_identifier: hosted_mobile_app_0001
+    origin_context: mobile_app
+    branding_settings:
+      background_color: "#0c0702"
+      button_color: "#5b4d31"
+      font_family: default
+      border_style: rounded
+      icon:
+        type: file
+        file: file_1UWqQv2f2UX4QyfJFw9yJG4N
+
+  runtime_owned:
+    success_url:
+      source: STRIPE_SUCCESS_URL
+      requirement: "Use the existing implemented success URL and preserve {CHECKOUT_SESSION_ID}."
+    cancel_url:
+      source: STRIPE_CANCEL_URL
+      requirement: "Use the existing implemented cancel/return URL."
+    line_items:
+      price_source: STRIPE_MEMBERSHIP_PRICE_ID
+      quantity: 1
+      requirement: "Use the real recurring Stripe Price configured by the runtime; do not hard-code a sample price."
+
+integration_rules:
+  - "Treat latest/, preview/, and openapi/ as upstream-generated Stripe specification content."
+  - "Do not patch generated Stripe schemas with VELORA business configuration."
+  - "Use this profile as the VELORA-specific reference when validating or generating Checkout Session requests."
+  - "The actual server-side Checkout implementation remains in withkoji/velora-booking-commerce."
+  - "Keep secret keys and webhook secrets out of this repository."
